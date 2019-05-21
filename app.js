@@ -4,8 +4,12 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const flash = require('connect-flash');
 const session = require('express-session');
-
+const request = require('request-promise');
+const bodyParser = require('body-parser');
 const app = express();
+const result = dotenv.config();
+
+dotenv.config();
 
 // Passport Config
 require('./config/passport')(passport);
@@ -57,6 +61,69 @@ app.use(function(req, res, next) {
 app.use('/', require('./routes/index.js'));
 app.use('/users', require('./routes/users.js'));
 
-const PORT = process.env.PORT || 5000;
+// Cities
+app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({ extended : true}));
 
-app.listen(PORT, console.log(`Server started on port ${PORT}`));
+mongoose.connect('mongodb+srv://process.env.DB_USER:process.env.DB_PASS@cluster0-guqco.mongodb.net/weather_express?retryWrites=true')
+
+const citySchema = new mongoose.Schema({
+    name : String 
+});
+
+const cityModel = mongoose.model('City', citySchema);
+
+
+async function getWeather(cities) {
+    const weather_data = [];
+
+    for (const city_obj of cities) {
+        const city = city_obj.name;
+        const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=process.env.API_KEY`;
+
+        const response_body = await request(url);
+
+        const weather_json = JSON.parse(response_body);
+
+        const weather = {
+            city : city,
+            temperature : Math.round(weather_json.main.temp),
+            description : weather_json.weather[0].description,
+            icon : weather_json.weather[0].icon
+        };
+
+        weather_data.push(weather);
+    }
+
+    return weather_data;
+}
+
+
+app.get('/', function(req, res) {
+
+    cityModel.find({}, function(err, cities) {
+
+        getWeather(cities).then(function(results) {
+
+          const weather_data = {weather_data : results};
+
+            res.render('weather', weather_data);
+
+        });
+
+    });      
+
+});
+
+app.post('/', function(req, res) {
+
+  const newCity = new cityModel({name : req.body.city_name});
+    newCity.save();
+
+    res.redirect('/');
+
+});
+
+
+
+app.listen(5000);
