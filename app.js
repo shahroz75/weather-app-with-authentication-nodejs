@@ -84,7 +84,7 @@ async function getWeather(cities) {
 
     for (const city_obj of cities) {
         const city = city_obj.name;
-        const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=process.env.API_KEY`;
+        const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${api_key}`;
 
         const response_body = await request(url);
 
