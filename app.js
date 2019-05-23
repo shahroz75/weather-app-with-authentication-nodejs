@@ -7,9 +7,14 @@ const session = require('express-session');
 const request = require('request-promise');
 const bodyParser = require('body-parser');
 const app = express();
-const result = dotenv.config();
 
-dotenv.config();
+const {
+  MONGO_USER,
+  MONGO_PASSWORD,
+  MONGO_PATH,
+} = process.env;
+
+mongoose.connect(`mongodb://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`,{ useNewUrlParser: true });
 
 // Passport Config
 require('./config/passport')(passport);
@@ -65,7 +70,7 @@ app.use('/users', require('./routes/users.js'));
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended : true}));
 
-mongoose.connect('mongodb+srv://process.env.DB_USER:process.env.DB_PASS@cluster0-guqco.mongodb.net/weather_express?retryWrites=true')
+mongoose.connect(`mongodb://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_PATH}`);
 
 const citySchema = new mongoose.Schema({
     name : String 
