@@ -1,4 +1,4 @@
-dbPassword = 'mongodb+srv://process.env.DB_USER:'+ encodeURIComponent('process.env.DB_PASS') + '@cluster0-guqco.mongodb.net/login_logout?retryWrites=true';
+dbPassword = 'mongodb+srv://${MONGO_USER}:'+ encodeURIComponent('${MONGO_PASSWORD}') + '${MONGO_PATH}';
 
 module.exports = {
     mongoURI: dbPassword
